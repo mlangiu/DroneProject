@@ -12,9 +12,9 @@
 //#include <i2cmaster.h>
 
 
-/* define CPU frequency in Hz here if not defined in Makefile */
+/* define CPU frequency in hz here if not defined in Makefile */
 #ifndef F_CPU
-#define F_CPU 14745600UL
+#define F_CPU 4000000UL
 #endif
 
 /* I2C clock in Hz */
@@ -49,18 +49,17 @@ unsigned char i2c_start(unsigned char address)
 
 	// wait until transmission completed
 	while(!(TWCR & (1<<TWINT))){
-		twst = TWCR;} // %TODO only for errorchecking?
+		twst = TWCR;}
 
 	// check value of TWI Status Register. Mask prescaler bits.
-	twst = TW_STATUS & 0xF8; // %TODO this is unnecessary, as TW_STATUS is def'd as (TWSR & 0xF8), possibly use 0x04 to mask third LSB
-	//if ( (twst != TW_START) && (twst != TW_REP_START)) return 1;
-	if ( ((TWSR & 0xF8) != TW_START) && ((TWSR & 0xF8) != TW_REP_START)) return 1;
+	twst = TW_STATUS & 0xF8;
+	if ( (twst != TW_START) && (twst != TW_REP_START)) return 1;
 
 	// send device address
 	TWDR = address;
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
-	// wait until transmission completed and ACK/NACK has been received
+	// wail until transmission completed and ACK/NACK has been received
 	while(!(TWCR & (1<<TWINT)));
 
 	// check value of TWI Status Register. Mask prescaler bits.
@@ -99,7 +98,7 @@ unsigned char i2c_start_wait(unsigned char address)
     	TWDR = address;
     	TWCR = (1<<TWINT) | (1<<TWEN);
     
-    	// wait until transmission completed
+    	// wail until transmission completed
     	while(!(TWCR & (1<<TWINT)));
     
     	// check value of TWI Status Register. Mask prescaler bits.
@@ -117,7 +116,7 @@ unsigned char i2c_start_wait(unsigned char address)
     	if( twst != TW_MT_SLA_ACK) return 1;
     	break;
      }
-return 0;
+
 }/* i2c_start_wait */
 
 
@@ -242,9 +241,6 @@ char i2c_readByte(char writeaddress, char readRegister){
  Return:  none (call by reference)
 *************************************************************************/
 void i2c_readMultipleByte(char writeaddress, char readRegister, char numberOfBytes, char *resultAdress){
-/*
-	char ret[30] = {0};	//Maximum number of receivable bytes
-*/
 	i2c_start_wait(writeaddress+I2C_WRITE);
 	i2c_write(readRegister);
 	i2c_rep_start(writeaddress+I2C_READ);
@@ -253,7 +249,7 @@ void i2c_readMultipleByte(char writeaddress, char readRegister, char numberOfByt
 	}
 	resultAdress[numberOfBytes-1] = i2c_readNak();
 	i2c_stop();
-return;
+	return;
 }/* i2c_readMultipleByte */
 
 
