@@ -3,17 +3,17 @@ clear all;
 delete(instrfindall);
 s = serial('COM3','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
 fopen(s);
-% while(1)
-%     data = readData(s);     %Datenpaket einlesen
-%     if ~isempty(data)    %Falls Datenpaket nicht leer
-%             newdata = double([typecast(uint8(flipud(data(1:2))), 'int16');...   %Jeweils LSB und MSB von drei Int zusammenfügen
-%             typecast(uint8(flipud(data(5:6))), 'int16');...
-%             typecast(uint8(flipud(data(3:4))), 'int16')]);
-%             bar(newdata);   %Daten plotten
-%             ylim([-800 800]);
-%     end
-%     pause(0.05);
-% end
+while(1)
+    data = readData(s);     %Datenpaket einlesen
+    if ~isempty(data)    %Falls Datenpaket nicht leer
+            newdata = double([typecast(uint8(flipud(data(1:2))), 'int16');...   %Jeweils LSB und MSB von drei Int zusammenfügen
+            typecast(uint8(flipud(data(5:6))), 'int16');...
+            typecast(uint8(flipud(data(3:4))), 'int16')]);
+            bar(newdata);   %Daten plotten
+            ylim([-800 800]);
+    end
+    pause(0.05);
+end
 fclose(s);
 hold off;
 end
