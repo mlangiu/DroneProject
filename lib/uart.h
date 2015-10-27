@@ -186,6 +186,45 @@ extern void uart_puts_p(const char *s );
 #define uart_puts_P(__s)       uart_puts_p(PSTR(__s))
 
 
+/**
+ *  @brief   Put array to ringbuffer for transmitting via UART over protocol
+ *
+ *  The array is buffered by the uart library in a circular buffer
+ *  and one element at a time is transmitted to the UART using interrupts.
+ *  Blocks if it can not write the whole string into the circular buffer.
+ * 
+ *  @param   arr array to be transmitted
+ *  @return  none
+ */
+extern void uart_putArrProtocol(char *arr, int length);
+
+/**
+ *  @brief   Put byte to ringbuffer for transmitting via UART over protocol
+ *
+ *  The byte is buffered by the uart library in a circular buffer
+ *  and one element at a time is transmitted to the UART using interrupts.
+ *  Blocks if it can not write the whole string into the circular buffer.
+ * 
+ *  @param   dateByte Byte to be transmitted
+ *  @return  none
+ */
+extern void uart_putByteProtocol(const int dataByte);
+
+
+/**
+ *  @brief   Receive data from ringbuffer over protocol
+ *
+ *  @param   none
+ *  @return  array with data length and data
+ */
+extern char * uart_getDataProtocol(void);
+
+/**
+ * @brief    Macro to automatically put a string constant into program memory
+ */
+#define uart_puts_P(__s)       uart_puts_p(PSTR(__s))
+
+
 
 /** @brief  Initialize USART1 (only available on selected ATmegas) @see uart_init */
 extern void uart1_init(unsigned int baudrate);

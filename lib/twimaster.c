@@ -257,3 +257,49 @@ return;
 }/* i2c_readMultipleByte */
 
 
+/*************************************************************************
+ Write one byte of data on the I2C slave including start and stop condition
+ 
+ Return:  none
+*************************************************************************/
+void i2c_writeByte (char address, char targetRegister, char data){
+	i2c_start_wait(address);
+	i2c_write(targetRegister);
+	i2c_write(data);
+	i2c_stop();
+	return;
+}/* i2c_writeByte */
+
+
+/*************************************************************************
+ Read one byte from the I2C device including start and stop condition
+ 
+ Return:  byte read from I2C device
+*************************************************************************/
+char i2c_readByte(char writeaddress, char readRegister){
+	char ret;
+	i2c_start_wait(writeaddress+I2C_WRITE);
+	i2c_write(readRegister);
+	i2c_rep_start(writeaddress+I2C_READ);
+	ret = i2c_readNak();
+	i2c_stop();
+	return ret;
+}/* i2c_readByte */
+
+
+/*************************************************************************
+ Read multiple bytes (numberOfBytes) from the I2C device including start and stop condition and write them to resultAdress
+ 
+ Return:  none (call by reference)
+*************************************************************************/
+void i2c_readMultipleByte(char writeaddress, char readRegister, char numberOfBytes, char *resultAdress){
+	i2c_start_wait(writeaddress+I2C_WRITE);
+	i2c_write(readRegister);
+	i2c_rep_start(writeaddress+I2C_READ);
+	for (int i = 0; i<numberOfBytes-1; i++){
+		resultAdress[i] = i2c_readAck();
+	}
+	resultAdress[numberOfBytes-1] = i2c_readNak();
+	i2c_stop();
+	return;
+}/* i2c_readMultipleByte */

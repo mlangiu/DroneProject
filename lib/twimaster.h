@@ -195,6 +195,26 @@ extern char i2c_readByte(char writeaddress, char readRegister);
 extern void i2c_readMultipleByte(char writeaddress, char readRegister, char numberOfBytes, char *resultAdress);
 
 
+/**
+ @brief    Write one byte of data on the I2C slave including start and stop condition
+ @return   none
+ */
+extern void i2c_writeByte (char address, char targetRegister, char data);
+
+
+/**
+ @brief    Read one byte from the I2C device including start and stop condition
+ @return   byte from I2C device
+ */
+extern char i2c_readByte(char writeaddress, char readRegister);
+
+
+/**
+ @brief    Read multiple bytes (numberOfBytes) from the I2C device including start and stop condition and write them to resultAdress
+ @return   none (call by reference)
+ */
+extern void i2c_readMultipleByte(char writeaddress, char readRegister, char numberOfBytes, char *resultAdress);
+
 
 /**@}*/
 #endif

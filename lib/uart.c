@@ -570,6 +570,103 @@ void uart_puts_p(const char *progmem_s )
 }/* uart_puts_p */
 
 
+/*************************************************************************
+Function: uart_putArrProtocol()
+Purpose:  transmit array from program memory to UART
+Input:    program memory array to be transmitted
+Returns:  none
+**************************************************************************/
+void uart_putArrProtocol(char *arr, int length )
+{
+	#define STARTSTOPBYTE 0x7E
+	#define ESCBYTE 0x7D
+	if (length != 0){
+	uart_putc(STARTSTOPBYTE);
+	for (int i = 0; i < length; i++)
+	{
+		switch(arr[i]){
+		case STARTSTOPBYTE: uart_putc(ESCBYTE); uart_putc(STARTSTOPBYTE); break;
+		case ESCBYTE: uart_putc(ESCBYTE); uart_putc(ESCBYTE); break;
+		default: uart_putc(arr[i]);
+		}
+	}
+	uart_putc(STARTSTOPBYTE);
+	}
+}
+
+
+/*************************************************************************
+Function: uart_putByteProtocol()
+Purpose:  transmit byte from program memory to UART
+Input:    program memory byte to be transmitted
+Returns:  none
+**************************************************************************/
+void uart_putByteProtocol(const int dataByte)
+{
+	#define STARTSTOPBYTE 0x7E
+	#define ESCBYTE 0x7D
+	
+	uart_putc(STARTSTOPBYTE);
+	switch(dataByte){
+		case STARTSTOPBYTE: uart_putc(ESCBYTE); uart_putc(STARTSTOPBYTE); break;
+		case ESCBYTE: uart_putc(ESCBYTE); uart_putc(ESCBYTE); break;
+		default: uart_putc(dataByte);
+	}
+	uart_putc(STARTSTOPBYTE);
+}
+
+/*************************************************************************
+Function: uart_getDataProtocol()
+Purpose:  receive byte from UART
+Input:    none
+Returns:  array with length of data as first element and data afterwards
+**************************************************************************/
+char * uart_getDataProtocol(void)
+{
+	#define STARTSTOPBYTE 0x7E
+	#define ESCBYTE 0x7D
+	#define MAXDATALENGTH 30
+	#define MAXNUMBERTIMEOUTS 15000
+	
+	static char data[MAXDATALENGTH + 2] = {0};
+	int waitHeaderBool = 1;
+	int afterEscBool = 0;
+	static unsigned int dataByte = 0;
+	int counter = 1;
+	int timeoutcounter = 0;
+	while (waitHeaderBool)
+	{
+		dataByte = uart_getc();
+		if (dataByte == UART_NO_DATA){data[0]=0; return data;}//hier landet er
+		else{
+			if (dataByte == STARTSTOPBYTE){waitHeaderBool = 0;}
+			else{data[0]=0; data[1]=13; return data;}//komischer fall, eventuell fehler weitergeben
+		}
+	}
+		
+	while(timeoutcounter <= MAXNUMBERTIMEOUTS)//timeout hinzufügen
+	{
+		dataByte = uart_getc();
+		if (dataByte == UART_NO_DATA){timeoutcounter++;}
+		else{
+			switch (dataByte)
+				{
+				case ESCBYTE:if(afterEscBool){data[counter] = ESCBYTE; afterEscBool = 0; counter++;}
+					else{afterEscBool = 1;}
+					break;
+				case STARTSTOPBYTE:if(afterEscBool){data[counter] = STARTSTOPBYTE; afterEscBool = 0; counter++;}
+					else{data[0] = counter-1; data[counter] = (timeoutcounter >> 8); data[counter + 1] = (timeoutcounter & 0xff); return data;}
+					break;						
+				default:if(afterEscBool){data[0]=0, data[1]=17; return data;}//errorfall
+					else{data[counter] = dataByte; counter++;}
+					break;
+				}
+			}
+	}	
+	data[0]=0, data[1]=15; data[2]=timeoutcounter; return data;
+}
+
+
 /*
  * these functions are only for ATmegas with two USART
  */
