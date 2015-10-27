@@ -219,12 +219,6 @@ extern void uart_putByteProtocol(const int dataByte);
  */
 extern char * uart_getDataProtocol(void);
 
-/**
- * @brief    Macro to automatically put a string constant into program memory
- */
-#define uart_puts_P(__s)       uart_puts_p(PSTR(__s))
-
-
 
 /** @brief  Initialize USART1 (only available on selected ATmegas) @see uart_init */
 extern void uart1_init(unsigned int baudrate);
