@@ -1,4 +1,4 @@
-function UARTProtokollLeser()
+function UARTProtokoll()
 clear all;
 delete(instrfindall);
 s = serial('COM3','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
