@@ -2,19 +2,18 @@
 #define UART_H
 /************************************************************************
 Title:    Interrupt UART library with receive/transmit circular buffers
-Author:   Peter Fleury <pfleury@gmx.ch>   http://jump.to/fleury
-File:     $Id: uart.h,v 1.12 2012/11/19 19:52:27 peter Exp $
-Software: AVR-GCC 4.1, AVR Libc 1.4
-Hardware: any AVR with built-in UART, tested on AT90S8515 & ATmega8 at 4 Mhz
-License:  GNU General Public License 
+Author:   Peter Fleury <pfleury@gmx.ch>  http://tinyurl.com/peterfleury
+File:     $Id: uart.h,v 1.13 2015/01/11 13:53:25 peter Exp $
+Software: AVR-GCC 4.x, AVR Libc 1.4 or higher
+Hardware: any AVR with built-in UART/USART
 Usage:    see Doxygen manual
 
 LICENSE:
-    Copyright (C) 2006 Peter Fleury
+    Copyright (C) 2015 Peter Fleury, GNU General Public License Version 3
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    the Free Software Foundation; either version 3 of the License, or
     any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -25,7 +24,8 @@ LICENSE:
 ************************************************************************/
 
 /** 
- *  @defgroup pfleury_uart UART Library
+ *  @file
+ *  @defgroup pfleury_uart UART Library <uart.h>
  *  @code #include <uart.h> @endcode
  * 
  *  @brief Interrupt UART library using the built-in UART with transmit and receive circular buffers. 
@@ -38,43 +38,56 @@ LICENSE:
  *
  *  The UART_RX_BUFFER_SIZE and UART_TX_BUFFER_SIZE constants define
  *  the size of the circular buffers in bytes. Note that these constants must be a power of 2.
- *  You may need to adapt this constants to your target and your application by adding 
- *  CDEFS += -DUART_RX_BUFFER_SIZE=nn -DUART_RX_BUFFER_SIZE=nn to your Makefile.
+ *  You may need to adapt these constants to your target and your application by adding 
+ *  CDEFS += -DUART_RX_BUFFER_SIZE=nn -DUART_TX_BUFFER_SIZE=nn to your Makefile.
  *
  *  @note Based on Atmel Application Note AVR306
- *  @author Peter Fleury pfleury@gmx.ch  http://jump.to/fleury
+ *  @author Peter Fleury pfleury@gmx.ch  http://tinyurl.com/peterfleury
+ *  @copyright (C) 2015 Peter Fleury, GNU General Public License Version 3
  */
  
-/**@{*/
 
+#include <avr/pgmspace.h>
 
-#if (__GNUC__ * 100 + __GNUC_MINOR__) < 304
-#error "This library requires AVR-GCC 3.4 or later, update to newer AVR-GCC compiler!"
+#if (__GNUC__ * 100 + __GNUC_MINOR__) < 405
+#error "This library requires AVR-GCC 4.5 or later, update to newer AVR-GCC compiler !"
 #endif
+
+
+/**@{*/
 
 
 /*
 ** constants and macros
 */
 
+
 /** @brief  UART Baudrate Expression
- *  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz          
- *  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
+ *  @param  xtalCpu  system clock in Mhz, e.g. 4000000UL for 4Mhz          
+ *  @param  baudRate baudrate in bps, e.g. 1200, 2400, 9600     
  */
 #define UART_BAUD_SELECT(baudRate,xtalCpu)  (((xtalCpu) + 8UL * (baudRate)) / (16UL * (baudRate)) -1UL)
 
 /** @brief  UART Baudrate Expression for ATmega double speed mode
- *  @param  xtalcpu  system clock in Mhz, e.g. 4000000UL for 4Mhz           
- *  @param  baudrate baudrate in bps, e.g. 1200, 2400, 9600     
+ *  @param  xtalCpu  system clock in Mhz, e.g. 4000000UL for 4Mhz           
+ *  @param  baudRate baudrate in bps, e.g. 1200, 2400, 9600     
  */
 #define UART_BAUD_SELECT_DOUBLE_SPEED(baudRate,xtalCpu) ( ((((xtalCpu) + 4UL * (baudRate)) / (8UL * (baudRate)) -1UL)) | 0x8000)
 
-
-/** Size of the circular receive buffer, must be power of 2 */
+/** @brief  Size of the circular receive buffer, must be power of 2
+ * 
+ *  You may need to adapt this constant to your target and your application by adding 
+ *  CDEFS += -DUART_RX_BUFFER_SIZE=nn to your Makefile.
+ */
 #ifndef UART_RX_BUFFER_SIZE
-#define UART_RX_BUFFER_SIZE 32
+#define UART_RX_BUFFER_SIZE 64
 #endif
-/** Size of the circular transmit buffer, must be power of 2 */
+
+/** @brief  Size of the circular transmit buffer, must be power of 2 
+ *
+ *  You may need to adapt this constant to your target and your application by adding 
+ *  CDEFS += -DUART_TX_BUFFER_SIZE=nn to your Makefile.
+ */
 #ifndef UART_TX_BUFFER_SIZE
 #define UART_TX_BUFFER_SIZE 32
 #endif
@@ -87,11 +100,11 @@ LICENSE:
 /* 
 ** high byte error return code of uart_getc()
 */
-#define UART_FRAME_ERROR      0x1000              /* Framing Error by UART       */
-#define UART_OVERRUN_ERROR    0x0800              /* Overrun condition by UART   */
-#define UART_PARITY_ERROR     0x0400              /* Parity Error by UART        */ 
-#define UART_BUFFER_OVERFLOW  0x0200              /* receive ringbuffer overflow */
-#define UART_NO_DATA          0x0100              /* no receive data available   */
+#define UART_FRAME_ERROR      0x1000              /**< @brief Framing Error by UART       */
+#define UART_OVERRUN_ERROR    0x0800              /**< @brief Overrun condition by UART   */
+#define UART_PARITY_ERROR     0x0400              /**< @brief Parity Error by UART        */ 
+#define UART_BUFFER_OVERFLOW  0x0200              /**< @brief receive ringbuffer overflow */
+#define UART_NO_DATA          0x0100              /**< @brief no receive data available   */
 
 
 /*
@@ -113,7 +126,6 @@ extern void uart_init(unsigned int baudrate);
  * higher byte the last receive error.
  * UART_NO_DATA is returned when no data is available.
  *
- *  @param   void
  *  @return  lower byte:  received byte from ringbuffer
  *  @return  higher byte: last receive status
  *           - \b 0 successfully received data from UART
@@ -134,16 +146,12 @@ extern void uart_init(unsigned int baudrate);
 extern unsigned int uart_getc(void);
 
 
-
-
 /**
  *  @brief   Put byte to ringbuffer for transmitting via UART
  *  @param   data byte to be transmitted
  *  @return  none
  */
 extern void uart_putc(unsigned char data);
-
-
 
 
 /**
@@ -171,39 +179,6 @@ extern void uart_puts(const char *s );
  * @see      uart_puts_P
  */
 extern void uart_puts_p(const char *s );
-
-/**
- *  @brief   Put array to ringbuffer for transmitting via UART over protocol
- *
- *  The array is buffered by the uart library in a circular buffer
- *  and one element at a time is transmitted to the UART using interrupts.
- *  Blocks if it can not write the whole string into the circular buffer.
- * 
- *  @param   arr array to be transmitted
- *  @return  none
- */
-extern void uart_putArrProtocol(char *arr, int length);
-
-/**
- *  @brief   Put byte to ringbuffer for transmitting via UART over protocol
- *
- *  The byte is buffered by the uart library in a circular buffer
- *  and one element at a time is transmitted to the UART using interrupts.
- *  Blocks if it can not write the whole string into the circular buffer.
- * 
- *  @param   dateByte Byte to be transmitted
- *  @return  none
- */
-extern void uart_putByteProtocol(const int dataByte);
-
-
-/**
- *  @brief   Receive data from ringbuffer over protocol
- *
- *  @param   none
- *  @return  array with data length and data
- */
-extern char * uart_getDataProtocol(void);
 
 /**
  * @brief    Macro to automatically put a string constant into program memory
