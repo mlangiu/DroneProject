@@ -1,4 +1,4 @@
-/*************************************************************************
+﻿/*************************************************************************
 Title:    Interrupt UART library with receive/transmit circular buffers
 Author:   Peter Fleury <pfleury@gmx.ch>   http://tinyurl.com/peterfleury
 File:     $Id: uart.c,v 1.15.2.4 2015/09/05 18:33:32 peter Exp $
@@ -571,23 +571,23 @@ void uart_puts_p(const char *progmem_s )
 
 
 /*************************************************************************
-Function: uart_putArrProtocol()
+Function: uart_putData()
 Purpose:  transmit array from program memory to UART
 Input:    program memory array to be transmitted
 Returns:  none
 **************************************************************************/
-void uart_putArrProtocol(char *arr, int length )
+void uart_putData(char *dataArray, signed char *length)
 {
 	#define STARTSTOPBYTE 0x7E
 	#define ESCBYTE 0x7D
-	if (length != 0){
+	if (*length != 0){
 	uart_putc(STARTSTOPBYTE);
-	for (int i = 0; i < length; i++)
+	for (int i = 0; i < *length; i++)
 	{
-		switch(arr[i]){
+		switch(dataArray[i]){
 		case STARTSTOPBYTE: uart_putc(ESCBYTE); uart_putc(STARTSTOPBYTE); break;
 		case ESCBYTE: uart_putc(ESCBYTE); uart_putc(ESCBYTE); break;
-		default: uart_putc(arr[i]);
+		default: uart_putc(dataArray[i]);
 		}
 	}
 	uart_putc(STARTSTOPBYTE);
@@ -596,12 +596,12 @@ void uart_putArrProtocol(char *arr, int length )
 
 
 /*************************************************************************
-Function: uart_putByteProtocol()
+Function: uart_putByte()
 Purpose:  transmit byte from program memory to UART
 Input:    program memory byte to be transmitted
 Returns:  none
 **************************************************************************/
-void uart_putByteProtocol(const int dataByte)
+void uart_putByte(char dataByte)
 {
 	#define STARTSTOPBYTE 0x7E
 	#define ESCBYTE 0x7D
@@ -616,54 +616,52 @@ void uart_putByteProtocol(const int dataByte)
 }
 
 /*************************************************************************
-Function: uart_getDataProtocol()
+Function: uart_getData()
 Purpose:  receive byte from UART
 Input:    none
 Returns:  array with length of data as first element and data afterwards
 **************************************************************************/
-char * uart_getDataProtocol(void)
+void uart_getData(char *dataArray, signed char *length)
 {
 	#define STARTSTOPBYTE 0x7E
 	#define ESCBYTE 0x7D
 	#define MAXDATALENGTH 30
-	#define MAXNUMBERTIMEOUTS 15000
-	
-	static char data[MAXDATALENGTH + 2] = {0};
-	int waitHeaderBool = 1;
+	#define MAXNUMBERTIMEOUTS 15000	
+
 	int afterEscBool = 0;
-	static unsigned int dataByte = 0;
-	int counter = 1;
+	int dataByte = 0;
+	unsigned char counter = 0;
 	int timeoutcounter = 0;
-	while (waitHeaderBool)
+	while (1)
 	{
 		dataByte = uart_getc();
-		if (dataByte == UART_NO_DATA){data[0]=0; return data;}//hier landet er
+		if (dataByte == UART_NO_DATA){*length = 0; return;}
 		else{
-			if (dataByte == STARTSTOPBYTE){waitHeaderBool = 0;}
-			else{data[0]=0; data[1]=13; return data;}//komischer fall, eventuell fehler weitergeben
+			if (dataByte == STARTSTOPBYTE){break;}
+			else{*length = -1; return;} // ERROR ggf Fehlertyp in dataArray schreiben oder andere Fehlerroutine
 		}
 	}
 		
-	while(timeoutcounter <= MAXNUMBERTIMEOUTS)//timeout hinzufügen
+	while(timeoutcounter <= MAXNUMBERTIMEOUTS)
 	{
 		dataByte = uart_getc();
 		if (dataByte == UART_NO_DATA){timeoutcounter++;}
 		else{
 			switch (dataByte)
 				{
-				case ESCBYTE:if(afterEscBool){data[counter] = ESCBYTE; afterEscBool = 0; counter++;}
+				case ESCBYTE:if(afterEscBool){dataArray[counter] = ESCBYTE; afterEscBool = 0; counter++;}
 					else{afterEscBool = 1;}
 					break;
-				case STARTSTOPBYTE:if(afterEscBool){data[counter] = STARTSTOPBYTE; afterEscBool = 0; counter++;}
-					else{data[0] = counter-1; data[counter] = (timeoutcounter >> 8); data[counter + 1] = (timeoutcounter & 0xff); return data;}
+				case STARTSTOPBYTE:if(afterEscBool){dataArray[counter] = STARTSTOPBYTE; afterEscBool = 0; counter++;}
+					else{*length = counter-1; return;}
 					break;						
-				default:if(afterEscBool){data[0]=0, data[1]=17; return data;}//errorfall
-					else{data[counter] = dataByte; counter++;}
+				default:if(afterEscBool){*length = -1; return;} // ERROR
+					else{dataArray[counter] = dataByte; counter++;}
 					break;
 				}
 			}
 	}	
-	data[0]=0, data[1]=15; data[2]=timeoutcounter; return data;
+	*length = -1; return;
 }
 
 

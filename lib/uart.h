@@ -196,7 +196,7 @@ extern void uart_puts_p(const char *s );
  *  @param   arr array to be transmitted
  *  @return  none
  */
-extern void uart_putArrProtocol(char *arr, int length);
+extern void uart_putData(char *dataArray, signed char *length);
 
 /**
  *  @brief   Put byte to ringbuffer for transmitting via UART over protocol
@@ -208,7 +208,7 @@ extern void uart_putArrProtocol(char *arr, int length);
  *  @param   dateByte Byte to be transmitted
  *  @return  none
  */
-extern void uart_putByteProtocol(const int dataByte);
+extern void uart_putByte(char dataByte);
 
 
 /**
@@ -217,7 +217,7 @@ extern void uart_putByteProtocol(const int dataByte);
  *  @param   none
  *  @return  array with data length and data
  */
-extern char * uart_getDataProtocol(void);
+extern void uart_getData(char *dataArray, signed char *length);
 
 
 /** @brief  Initialize USART1 (only available on selected ATmegas) @see uart_init */
