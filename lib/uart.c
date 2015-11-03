@@ -576,13 +576,13 @@ Purpose:  transmit array from program memory to UART
 Input:    program memory array to be transmitted
 Returns:  none
 **************************************************************************/
-void uart_putData(char *dataArray, signed char *length)
+void uart_putData(char *dataArray, signed char length)
 {
 	#define STARTSTOPBYTE 0x7E
 	#define ESCBYTE 0x7D
-	if (*length != 0){
+	if (length != 0){
 	uart_putc(STARTSTOPBYTE);
-	for (int i = 0; i < *length; i++)
+	for (int i = 0; i < length; i++)
 	{
 		switch(dataArray[i]){
 		case STARTSTOPBYTE: uart_putc(ESCBYTE); uart_putc(STARTSTOPBYTE); break;

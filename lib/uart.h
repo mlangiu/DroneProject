@@ -196,7 +196,7 @@ extern void uart_puts_p(const char *s );
  *  @param   arr array to be transmitted
  *  @return  none
  */
-extern void uart_putData(char *dataArray, signed char *length);
+extern void uart_putData(char *dataArray, signed char length);
 
 /**
  *  @brief   Put byte to ringbuffer for transmitting via UART over protocol

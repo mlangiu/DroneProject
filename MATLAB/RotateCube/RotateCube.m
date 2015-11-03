@@ -1,12 +1,13 @@
 
 function cubeOut = RotateCube(angle, rotationAxis, cube)
-    if cube == 0
-        rotationAxis = [1,1,1];
+        %rotationAxis = [1,1,1];
         rotationAxis = rotationAxis/norm(rotationAxis);
         q = [cos(angle/2), rotationAxis(1) * sin(angle/2), rotationAxis(2) * sin(angle/2), rotationAxis(3) * sin(angle/2)];
+    if nargin == 2 || cube == 0
+        figure('Units', 'centimeters', 'Position', [25 3 20 20]);
         faces = [1 2 3 4; 2 6 7 3; 4 3 7 8; 1 5 8 4; 1 2 6 5; 5 6 7 8];
         vertices = (Matfromq(q)*[-0.5 -0.5 -0.5; -0.5 0.5 -0.5; 0.5 0.5 -0.5; 0.5 -0.5 -0.5; -0.5 -0.5 0.5; -0.5 0.5 0.5; 0.5 0.5 0.5; 0.5 -0.5 0.5]')';
-        cubeOut = patch('Vertices',vertices,'Faces',faces,'FaceAlpha',0.8,'FaceColor','flat','FaceVertexCData',hsv(6),'erasemode','xor');
+        cubeOut = patch('Vertices',vertices,'Faces',faces,'FaceAlpha',0.8,'FaceColor','flat','FaceVertexCData',hsv(6),'AmbientStrength',1);
         view(3);
         axis square;
         axis([-2 2 -2 2 -2 2]);
@@ -14,10 +15,8 @@ function cubeOut = RotateCube(angle, rotationAxis, cube)
         ylabel('Y');
         zlabel('Z');
         grid on;
+        lightangle(-45,30);
     else
-        rotationAxis = [1,1,1];
-        rotationAxis = rotationAxis/norm(rotationAxis);
-        q = [cos(angle/2), rotationAxis(1) * sin(angle/2), rotationAxis(2) * sin(angle/2), rotationAxis(3) * sin(angle/2)];
         cube.Vertices = (Matfromq(q)*[-0.5 -0.5 -0.5; -0.5 0.5 -0.5; 0.5 0.5 -0.5; 0.5 -0.5 -0.5; -0.5 -0.5 0.5; -0.5 0.5 0.5; 0.5 0.5 0.5; 0.5 -0.5 0.5]')';
         drawnow update;
         cubeOut = cube;
