@@ -1,74 +1,73 @@
-function UARTProtokoll()
-clear all;
-delete(instrfindall);
-s = serial('COM3','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
-fopen(s);
-while(1)
-    data = readData(s);     %Datenpaket einlesen
-    if ~isempty(data)    %Falls Datenpaket nicht leer
-            newdata = double([typecast(uint8(flipud(data(1:2))), 'int16');...   %Jeweils LSB und MSB von drei Int zusammenfügen
-            typecast(uint8(flipud(data(5:6))), 'int16');...
-            typecast(uint8(flipud(data(3:4))), 'int16')]);
-            bar(newdata);   %Daten plotten
-            ylim([-800 800]);
-    end
-    pause(0.05);
-end
+% function UARTProtokoll()
+% s = UART_init();
+% while(1)
+%     data = readData(s);     %Datenpaket einlesen
+%     if ~isempty(data)    %Falls Datenpaket nicht leer
+%         newdata = decodeRawData(data, {'int' 'uint' 'char', 'float'});
+%         newdata
+%     end
+% end
+% UART_close(s)
+% end
+
+function UART_close(s)
 fclose(s);
-hold off;
 end
 
+
+function s = UART_init()
+delete(instrfindall);
+if nargin == 0
+s = serial('COM4','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
+elseif nargin == 1
+fopen(s);
+end
+
+
 function outData = decodeRawData(rawData, formatArray)
-    formatArray = {'char', 'int', 'long' , 'long'};
-    charlength = 1;
-    intlength = 2;
-    longlength = 4;
-    floatlength = 4;
-    
-    outDataLength = 0;
-    for i = 1:length(formatArray);
-        switch formatArray(i)
-            case 'char'
-                outDataLength = outDataLength + charlength;
-            case 'int'
-                outDataLength = outDataLength + intlength;
-            case 'uint'
-                outDataLength = outDataLength + intlength;
-            case 'long'
-                outDataLength = outDataLength + longlength;
-            case 'ulong'
-                outDataLength = outDataLength + longlength;
-            case 'float'
-                outDataLength = outDataLength + floatlength;
-        end
-    end
-    
-    outData = zeros(1, outDataLength);
-    
-    cursor = 1;
-    for i = 1:length(formatArray);
-        switch formatArray(i)
-            case 'char'
-                outData(i) = 
-                cursor = cursor + charlength;
-            case 'int'
-                
-                cursor = cursor + intlength;
-            case 'uint'
-                
-                cursor = cursor + intlength;
-            case 'long'
-                
-                cursor = cursor + longlength;
-            case 'ulong'
-                
-                cursor = cursor + longlength;
-            case 'float'
-                
-                cursor = cursor + floatlength;
+    if isempty(rawData) 
+        outData = [];
+    else
+        charlength = 1;
+        intlength = 2;
+        longlength = 4;
+        floatlength = 4;
+        doublelength = 8;
+
+        outData = zeros(1, length(formatArray));
+
+        cursor = 1;
+        for i = 1:length(formatArray);
+            switch formatArray{i}
+                case 'uchar'
+                    outData(i) = double(typecast(uint8(rawData(cursor)), 'uint8'));
+                    cursor = cursor + charlength;
+                case 'char'
+                    outData(i) = double(typecast(uint8(rawData(cursor)), 'int8'));
+                    cursor = cursor + charlength;
+                case 'int'
+                    outData(i) = double(typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'int16'));
+                    cursor = cursor + intlength;
+                case 'uint'
+                    outData(i) = typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'uint16');
+                    cursor = cursor + intlength;
+                case 'long'
+                    outData(i) = double(typecast(uint8(rawData(cursor+longlength-1:-1:cursor)), 'int32'));
+                    cursor = cursor + longlength;
+                case 'ulong'
+                    outData(i) = double(typecast(uint8(rawData(cursor+longlength-1:-1:cursor)), 'uint32'));
+                    cursor = cursor + longlength;
+                case 'float'
+                    outData(i) = double(typecast(uint8(flipud(rawData(cursor+floatlength-1:-1:cursor))), 'single'));
+                    cursor = cursor + floatlength;
+                case 'double'
+                    outData(i) = typecast(uint8(flipud(rawData(cursor+doublelength-1:-1:cursor))), 'double');
+                    cursor = cursor + doublelength;
+            end
         end
     end
 end
+
 
 function [outData] = readData(s)
 outData = [];

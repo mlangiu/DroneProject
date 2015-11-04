@@ -37,6 +37,9 @@ LICENSE:
                         
 *************************************************************************/
 #include <avr/io.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "uart.h"
@@ -45,6 +48,11 @@ LICENSE:
 /*
  *  constants and macros
  */
+#define CHARFORMAT 'c' 
+#define INTFORMAT 'i'
+#define LONGFORMAT 'l'
+#define FLOATFORMAT 'f'
+#define DOUBLEFORMAT 'd'
 
 /* size of RX/TX buffers */
 #define UART_RX_BUFFER_MASK ( UART_RX_BUFFER_SIZE - 1)
@@ -576,7 +584,7 @@ Purpose:  transmit array from program memory to UART
 Input:    program memory array to be transmitted
 Returns:  none
 **************************************************************************/
-void uart_putData(char *dataArray, signed char length)
+void uart_putArray(char *dataArray, signed char length)
 {
 	#define STARTSTOPBYTE 0x7E
 	#define ESCBYTE 0x7D
@@ -664,6 +672,54 @@ void uart_getData(char *dataArray, signed char *length)
 	*length = -1; return;
 }
 
+void uart_putData (char* formatstr, ...)
+{
+	#define STARTSTOPBYTE 0x7E
+	#define ESCBYTE 0x7D
+	va_list ap;
+	int narg = strlen(formatstr)-1;
+	char *data_pnt;
+	char data_length;
+	va_start (ap, formatstr);         /* Initialize the argument list. */	
+
+	uart_putc(STARTSTOPBYTE);
+	
+	for (int i = 0; i <= narg; i++){
+		switch(formatstr[i]){
+			case CHARFORMAT:
+				data_pnt = va_arg (ap, char*);
+				data_length = sizeof(char);
+				break;
+			case INTFORMAT:
+				data_pnt = (char*)va_arg (ap, int*);
+				data_length = sizeof(int);
+				break;
+			case LONGFORMAT:
+				data_pnt = (char*)va_arg (ap, long*);
+				data_length = sizeof(long);
+				break;
+			case FLOATFORMAT:
+				data_pnt = (char*)va_arg (ap, float*);
+				data_length = sizeof(float);
+				break;
+			case DOUBLEFORMAT:
+				data_pnt = (char*)va_arg (ap, double*);
+				data_length = sizeof(double);
+				break;
+		}
+
+		for (int k = 0; k < data_length; k++){
+			switch(*(data_pnt+k)){
+				case STARTSTOPBYTE: uart_putc(ESCBYTE); uart_putc(STARTSTOPBYTE); break;
+				case ESCBYTE: uart_putc(ESCBYTE); uart_putc(ESCBYTE); break;
+				default: uart_putc(*(data_pnt+k));
+			}
+		}
+	}
+	uart_putc(STARTSTOPBYTE);
+	va_end (ap);                  /* Clean up. */
+	return;
+}
 
 /*
  * these functions are only for ATmegas with two USART

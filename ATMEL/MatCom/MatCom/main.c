@@ -19,20 +19,18 @@ int main(void)
 {
 	// initializing uart data variables for storage of incoming data
 	signed char uart_data_length = -1;
-	char uart_data_array[30] = {0};
+	char char1 = '@';
+	int innt = 12412;
+	long long1 = -123456789;
+	float float1 = 3.1415926;
+	double double1 = -2.81;
 	
     uart_init( UART_BAUD_SELECT(BAUD,F_CPU) );
 	sei();
     while (1) 
     {
-		uart_getData(uart_data_array, &uart_data_length);
-		if(uart_data_length != -1 && uart_data_length != 0)
-		{
-			uart_putData(uart_data_array, &uart_data_length);	
-		}
-	    //_delay_ms(500);
-	   /* uart_putc('b');
-	    _delay_ms(500);*/
+		uart_putData("cf",&char1,&float1);	
+	    _delay_ms(500);
     }
 }
 

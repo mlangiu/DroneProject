@@ -1,23 +1,27 @@
-% function UARTProtokoll()
-% s = UART_init();
-% while(1)
-%     data = readData(s);     %Datenpaket einlesen
-%     if ~isempty(data)    %Falls Datenpaket nicht leer
-%         newdata = decodeRawData(data, {'int' 'uint' 'char', 'float'});
-%         newdata
-%     end
-% end
-% UART_close(s)
-% end
+function UARTProtokoll()
+s = UART_init('4',9600);
+while(1)
+    data = readData(s);     %Datenpaket einlesen
+    if ~isempty(data)    %Falls Datenpaket nicht leer
+        newdata = decodeRawData(data, {'char', 'float'});
+        newdata
+    end
+end
+UART_close(s)
+end
 
 function UART_close(s)
 fclose(s);
 end
 
 
-function s = UART_init()
+function s = UART_init(comport, baud)
 delete(instrfindall);
-s = serial('COM4','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
+if nargin == 0
+    s = serial('COM4','BaudRate',9600,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
+elseif nargin == 2
+    s = serial(strcat('COM',comport),'BaudRate',baud,'DataBits',8); %Seriellen Kanal initialisieren und öffnen
+end
 fopen(s);
 end
 
@@ -47,7 +51,7 @@ function outData = decodeRawData(rawData, formatArray)
                     outData(i) = double(typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'int16'));
                     cursor = cursor + intlength;
                 case 'uint'
-                    outData(i) = typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'uint16');
+                    outData(i) = double(typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'uint16'));
                     cursor = cursor + intlength;
                 case 'long'
                     outData(i) = double(typecast(uint8(rawData(cursor+longlength-1:-1:cursor)), 'int32'));
