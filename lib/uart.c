@@ -48,11 +48,6 @@ LICENSE:
 /*
  *  constants and macros
  */
-#define CHARFORMAT 'c' 
-#define INTFORMAT 'i'
-#define LONGFORMAT 'l'
-#define FLOATFORMAT 'f'
-#define DOUBLEFORMAT 'd'
 
 /* size of RX/TX buffers */
 #define UART_RX_BUFFER_MASK ( UART_RX_BUFFER_SIZE - 1)
@@ -365,8 +360,34 @@ static volatile unsigned char UART1_RxTail;
 static volatile unsigned char UART1_LastRxError;
 #endif
 
+#define FLOWCONTROL
+#if defined(FLOWCONTROL)
 
+volatile char flowOn = 1;
 
+ISR (UART0_RECEIVE_INTERRUPT)	
+/*************************************************************************
+Function: UART Receive Complete interrupt
+Purpose:  called when the UART has received a character in flow control mode
+**************************************************************************/
+{
+	#define XON 17
+	#define XOFF 19
+	
+	volatile char data = UART0_DATA;
+	data = data+0;
+	if (data == XON)
+	{
+		flowOn = 1;
+	}
+	
+	if (data == XOFF)
+	{
+		flowOn = 0;
+	}
+}
+
+#else
 ISR (UART0_RECEIVE_INTERRUPT)	
 /*************************************************************************
 Function: UART Receive Complete interrupt
@@ -408,7 +429,7 @@ Purpose:  called when the UART has received a character
     }
     UART_LastRxError |= lastRxError;   
 }
-
+#endif
 
 ISR (UART0_TRANSMIT_INTERRUPT)
 /*************************************************************************
@@ -686,24 +707,32 @@ void uart_putData (char* formatstr, ...)
 	
 	for (int i = 0; i <= narg; i++){
 		switch(formatstr[i]){
-			case CHARFORMAT:
-				data_pnt = va_arg (ap, char*);
+			case 'c':
+				data_pnt = va_arg(ap, char*);
 				data_length = sizeof(char);
 				break;
-			case INTFORMAT:
-				data_pnt = (char*)va_arg (ap, int*);
+			case 'i':
+				data_pnt = (char*) va_arg(ap, int*);
 				data_length = sizeof(int);
 				break;
-			case LONGFORMAT:
-				data_pnt = (char*)va_arg (ap, long*);
+			case 'l':
+				data_pnt = (char*) va_arg(ap, long*);
 				data_length = sizeof(long);
 				break;
-			case FLOATFORMAT:
-				data_pnt = (char*)va_arg (ap, float*);
+			case 'f':
+				data_pnt = (char*) va_arg(ap, float*);
 				data_length = sizeof(float);
 				break;
-			case DOUBLEFORMAT:
-				data_pnt = (char*)va_arg (ap, double*);
+			case 's':
+				data_pnt = (char*) va_arg(ap, short*);
+				data_length = sizeof(short);
+				break;
+			case 'L':
+				data_pnt = (char*) va_arg(ap, long long*);
+				data_length = sizeof(long long);
+				break;
+			case 'd':
+				data_pnt = (char*) va_arg(ap, double*);
 				data_length = sizeof(double);
 				break;
 		}

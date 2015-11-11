@@ -60,7 +60,7 @@ LICENSE:
 /*
 ** constants and macros
 */
-
+extern volatile char flowOn;
 
 /** @brief  UART Baudrate Expression
  *  @param  xtalCpu  system clock in Mhz, e.g. 4000000UL for 4Mhz          
