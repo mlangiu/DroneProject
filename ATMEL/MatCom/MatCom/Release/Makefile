@@ -40,7 +40,9 @@ C_SRCS +=  \
 ../../../../lib/bmp085.c \
 ../../../../lib/twimaster.c \
 ../../../../lib/uart.c \
-../main.c
+../main.c \
+../MPU6050.c \
+../TC1.c
 
 
 PREPROCESSING_SRCS += 
@@ -53,25 +55,33 @@ OBJS +=  \
 bmp085.o \
 twimaster.o \
 uart.o \
-main.o
+main.o \
+MPU6050.o \
+TC1.o
 
 OBJS_AS_ARGS +=  \
 bmp085.o \
 twimaster.o \
 uart.o \
-main.o
+main.o \
+MPU6050.o \
+TC1.o
 
 C_DEPS +=  \
 bmp085.d \
 twimaster.d \
 uart.d \
-main.d
+main.d \
+MPU6050.d \
+TC1.d
 
 C_DEPS_AS_ARGS +=  \
 bmp085.d \
 twimaster.d \
 uart.d \
-main.d
+main.d \
+MPU6050.d \
+TC1.d
 
 OUTPUT_FILE_PATH +=MatCom.elf
 
@@ -87,6 +97,10 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
+
+
+
+
 
 
 

@@ -1,13 +1,12 @@
-#include <avr/io.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
-#include <avr/interrupt.h>
-#include <avr/common.h> // needed for SREG since it is not defined in io.h for some stupid reason...
-#include <avr/pgmspace.h>
-#include "uart.h"
-#include "MPU6050.h"
-#include <util/delay.h>
+// #include <avr/io.h>
+// #include <stdarg.h>
+// #include <stdio.h>
+// #include <string.h>
+// #include <avr/interrupt.h>
+// #include <avr/common.h> // needed for SREG since it is not defined in io.h for some stupid reason...
+// #include <avr/pgmspace.h>
+// #include "uart.h"
+#include "TC1.h"
 
 // 16-bit Timer/Counter unit TC1
 #define TIMER_BOTTOM 0x0000
@@ -35,14 +34,37 @@ the chance of capturing noise spikes.
 static volatile unsigned int IC1TS;
 static volatile unsigned int IC1TS_OLD;
 
+
+ISR (TIMER1_CAPT_vect)
+{
+	int i, xData, yData, zData;
+	unsigned char sreg;
+	/* Save global interrupt flag */
+	sreg = SREG;
+	/* Disable interrupts to ensure safe operation*/
+	cli();
+	// Read IC1 Timestamp (2 cycle-operation)
+	IC1TS=ICR1;
+	/* Restore global interrupt flag */
+	SREG = sreg;
+	
+	if(IC1TS < IC1TS_OLD) // alternatively check overflow buffer...
+	{
+		//TODO: Overflow handling Routine
+	}
+	//TODO: Get MPU data
+    mpu6050_readAccelerometerDataRaw(&xData, &yData, &zData);
+	i=TC1_Read();
+	//TODO: Send MPU data and timestamp via UART
+	uart_putData("iiii",&i,&xData,&yData,&zData);
+}
+
 void TC1_Setup ( void )
 {
 // Setting TC1 Control Register A -
 // TCCR1A |=
 // Setting TC1 Control Register B - Clock Select, prescaler
-	TCCR1B	|= (1 << ICNC1 | 1 << ICES1 | 1 << CS10 | 0 << CS11 | 1 << CS12 );
-	PRR0 |= 0 << PRTIM1;
-	TIMSK1 |= 1 << ICIE1;
+TCCR1B	|= (1 << ICNC1 | 1 << ICES1 | 1 << CS10 | 0 << CS11 | 1 << CS12 )
 }
 
 unsigned int TC1_Read( void )
@@ -58,35 +80,4 @@ unsigned int TC1_Read( void )
 	/* Restore global interrupt flag */
 	SREG = sreg;
 	return i;
-}
-
-
-ISR (TIMER1_CAPT_vect)
-{
-	int xData, yData, zData;
-// 	unsigned int i;
-//  	unsigned char sreg;
-	/* Save global interrupt flag */
-// 	sreg = SREG;
-	/* Disable interrupts to ensure safe operation*/
-//  	cli();
-	uart_putc(6);
-	// Read IC1 Timestamp (2 cycle-operation)
-// 	IC1TS=ICR1;
-	/* Restore global interrupt flag */
-	
-	
-// 	if(IC1TS < IC1TS_OLD) // alternatively check overflow buffer...
-// 	{
-		//TODO: Overflow handling Routine
-// 	}
-	//TODO: Get MPU data
-// 	uart_putc('2');
-	mpu6050_readAccelerometerDataRaw(&xData, &yData, &zData);
-	_delay_ms(40);
-// 	i = TC1_Read();
-	//TODO: Send MPU data and timestamp via UART
-// 	uart_putData("iii",&xData,&yData,&zData);
-// 	uart_putc('3');
-//  	SREG = sreg;
 }

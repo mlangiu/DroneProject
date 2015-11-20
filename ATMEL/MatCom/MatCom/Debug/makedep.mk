@@ -10,3 +10,7 @@
 
 main.c
 
+MPU6050.c
+
+TC1.c
+

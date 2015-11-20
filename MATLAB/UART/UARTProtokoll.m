@@ -1,10 +1,12 @@
 function UARTProtokoll()
-s = UART_init('4',9600);
+clc;
+s = UART_init('5',9600);
 while(1)
-    data = readData(s);     %Datenpaket einlesen
+    data = fread(s,1);%readData(s);     %Datenpaket einlesen
     if ~isempty(data)    %Falls Datenpaket nicht leer
-        newdata = decodeRawData(data, {'char', 'float'});
-        newdata
+        data
+%         newdata = decodeRawData(data, {'int', 'int', 'int'});
+%         newdata
     end
 end
 UART_close(s)
@@ -48,22 +50,22 @@ function outData = decodeRawData(rawData, formatArray)
                     outData(i) = double(typecast(uint8(rawData(cursor)), 'int8'));
                     cursor = cursor + charlength;
                 case 'int'
-                    outData(i) = double(typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'int16'));
+                    outData(i) = double(typecast(uint8(rawData(cursor:cursor+intlength-1)), 'int16'));
                     cursor = cursor + intlength;
                 case 'uint'
-                    outData(i) = double(typecast(uint8(rawData(cursor+intlength-1:-1:cursor)), 'uint16'));
+                    outData(i) = double(typecast(uint8(rawData(cursor:cursor+intlength-1)), 'uint16'));
                     cursor = cursor + intlength;
                 case 'long'
-                    outData(i) = double(typecast(uint8(rawData(cursor+longlength-1:-1:cursor)), 'int32'));
+                    outData(i) = double(typecast(uint8(rawData(cursor:cursor+longlength-1)), 'int32'));
                     cursor = cursor + longlength;
                 case 'ulong'
-                    outData(i) = double(typecast(uint8(rawData(cursor+longlength-1:-1:cursor)), 'uint32'));
+                    outData(i) = double(typecast(uint8(rawData(cursor:cursor+longlength-1)), 'uint32'));
                     cursor = cursor + longlength;
                 case 'float'
-                    outData(i) = double(typecast(uint8(flipud(rawData(cursor+floatlength-1:-1:cursor))), 'single'));
+                    outData(i) = double(typecast(uint8(flipud(rawData(cursor:cursor+floatlength-1))), 'single'));
                     cursor = cursor + floatlength;
                 case 'double'
-                    outData(i) = typecast(uint8(flipud(rawData(cursor+doublelength-1:-1:cursor))), 'double');
+                    outData(i) = typecast(uint8(flipud(rawData(cursor:cursor+doublelength-1))), 'double');
                     cursor = cursor + doublelength;
             end
         end

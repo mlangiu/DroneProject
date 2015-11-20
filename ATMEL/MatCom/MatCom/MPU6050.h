@@ -1,8 +1,6 @@
 #ifndef MPU_6050_H
 #define MPU_6050_H
 
-#include "twimaster.h"
-
 /**
  @brief Start simple setup routine
  @return none

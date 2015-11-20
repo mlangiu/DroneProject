@@ -119,20 +119,20 @@ void mpu6050_setup()
 	//Disable FSync, 256Hz DLPF
 	i2c_writeByte(MPU6050_ADDRESS, MPU6050_RA_CONFIG, 0x00);
 	
-	#define XG_ST 7
-	#define YG_ST 6
-	#define ZG_ST 5
-	#define FS_SEL1 4
-	#define FS_SEL0 3
+	#define XG_ST = 7
+	#define YG_ST = 6
+	#define ZG_ST = 5
+	#define FS_SEL1 = 4
+	#define FS_SEL0 = 3
 	//XG_ST,... activates self test, FS_SEL chooses range: FS_SEL = 0: +-250°/s, FS_SEL = 1: +-500°/s, FS_SEL = 2: +-1000°/s, FS_SEL = 3: +-2000°/s
 	i2c_writeByte(MPU6050_ADDRESS, MPU6050_RA_GYRO_CONFIG, 0 << XG_ST | 0 << YG_ST | 0 << ZG_ST | 1 << FS_SEL1 | 1 << FS_SEL0);
 	
 	
-	#define XA_ST 7
-	#define YA_ST 6
-	#define ZA_ST 5
-	#define AFS_SEL1 4
-	#define AFS_SEL0 3
+	#define XA_ST = 7
+	#define YA_ST = 6
+	#define ZA_ST = 5
+	#define AFS_SEL1 = 4
+	#define AFS_SEL0 = 3
 	//XA_ST,... activates self test, AFS_SEL chooses range: FS_SEL = 0: +-2g, FS_SEL = 1: +-4g, FS_SEL = 2: +-8g, FS_SEL = 3: +-16g
 	i2c_writeByte(MPU6050_ADDRESS, MPU6050_RA_ACCEL_CONFIG, 0 << XA_ST | 0 << YA_ST | 0 << ZA_ST | 0 << AFS_SEL1 | 1 << AFS_SEL0);
 	
@@ -180,7 +180,7 @@ void mpu6050_setup()
 	#define FSYNC_INT_LEVEL 3 //When this bit is equal to 0, the logic level for the FSYNC pin (when used as an interrupt to the host processor) is active high; otherwise active low
 	#define FSYNC_INT_EN 2 //When equal to 0, this bit disables the FSYNC pin from causing an interrupt to the host processor; otherwise enables the FSYNC pin to be used as an interrupt pin
 	#define I2C_BYPASS_EN 1 //When this bit is equal to 1 and I2C_MST_EN (Register 106 bit[5]) is equal to 0, the host application processor will be able to directly access the auxiliary I2C-bus
-	i2c_writeByte(MPU6050_ADDRESS, MPU6050_RA_INT_PIN_CFG, 0 << INT_LEVEL | 0 << INT_OPEN | 1 << LATCH_INT_EN | 1 << INT_RD_CLEAR | 0 << FSYNC_INT_LEVEL | 0 << FSYNC_INT_EN | 0 << I2C_BYPASS_EN);
+	i2c_writeByte(MPU6050_ADDRESS, MPU6050_RA_INT_PIN_CFG, 0 << INT_LEVEL | 0 << INT_OPEN | 0 << LATCH_INT_EN | 0 << INT_RD_CLEAR | 0 << FSYNC_INT_LEVEL | 0 << FSYNC_INT_EN | 0 << I2C_BYPASS_EN);
 	
 	
 	#define MOT_EN 6 //When set to 1, this bit enables Motion detection to generate an interrupt
